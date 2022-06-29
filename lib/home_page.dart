@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'colors.dart' as color;
+import 'dart:convert';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -10,6 +11,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List info = [];
+  _initData(){
+    DefaultAssetBundle.of(context).loadString("json/info.json").then((value){
+     info = json.decode(value);
+    });
+  }
+  @override
+  void initState(){
+    super.initState();
+    _initData();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,9 +243,116 @@ class _HomePageState extends State<HomePage> {
                          )
                        ],
                      ),
-                   )
+                   ),
                   ],
                 ),
+              ),
+              Row(
+                children: [
+                  Text(
+                    "Area Of foucs",
+                    textAlign:TextAlign.center,
+                    style:TextStyle(
+                        fontSize:25,
+                        fontWeight:FontWeight.w500,
+                        color:color.AppColor.homePageTitle
+                    ),
+                  )
+                ],
+              ),
+              Expanded(
+                child:OverflowBox(
+                    maxWidth:MediaQuery.of(context).size.width,
+                    child:MediaQuery.removePadding(
+                        removeTop:true,
+                        context: context,
+                        child: ListView.builder(
+                    itemCount:(info.length.toDouble()/2).toInt(),//2
+                  itemBuilder: (_,index){
+                    int a = 2 * index;//0
+                    int b = 2 * index + 1;
+                    return Row(
+                      children: [
+                        Container(
+                          width:(MediaQuery.of(context).size.width-90)/2,
+                          height:170,
+                          margin:EdgeInsets.only(left:30,bottom:15,top:15),
+                          padding:EdgeInsets.only(bottom:5),
+                          decoration:BoxDecoration(
+                              color:Colors.white,
+                              borderRadius:BorderRadius.circular(15),
+                              image:DecorationImage(
+                                  image:AssetImage(info[a]['img'])
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                    blurRadius:3,
+                                    offset:Offset(5,5),
+                                    color:color.AppColor.gradientSecond.withOpacity(0.1)
+                                ),
+                                BoxShadow(
+                                    blurRadius:3,
+                                    offset:Offset(-5,-5),
+                                    color:color.AppColor.gradientSecond.withOpacity(0.1)
+                                )
+                              ]
+                          ),
+                          child:Center(
+                              child:Align(
+                                alignment:Alignment.bottomCenter,
+                                child:Text(
+                                  info[a]['title'],
+                                  style:TextStyle(
+                                      fontSize:20,
+                                      color:color.AppColor.homePageDetail
+                                  ),
+                                ),
+                              )
+                          ),
+                        ),
+                        Container(
+                          width:(MediaQuery.of(context).size.width-90)/2,
+                          height:170,
+                          margin:EdgeInsets.only(left:30,bottom:15,top:15),
+                          padding:EdgeInsets.only(bottom:5),
+                          decoration:BoxDecoration(
+                              color:Colors.white,
+                              borderRadius:BorderRadius.circular(15),
+                              image:DecorationImage(
+                                  image:AssetImage(info[b]['img'])
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                    blurRadius:3,
+                                    offset:Offset(5,5),
+                                    color:color.AppColor.gradientSecond.withOpacity(0.1)
+                                ),
+                                BoxShadow(
+                                    blurRadius:3,
+                                    offset:Offset(-5,-5),
+                                    color:color.AppColor.gradientSecond.withOpacity(0.1)
+                                )
+                              ]
+                          ),
+                          child:Center(
+                              child:Align(
+                                alignment:Alignment.bottomCenter,
+                                child:Text(
+                                  info[b]['title'],
+                                  style:TextStyle(
+                                      fontSize:20,
+                                      color:color.AppColor.homePageDetail
+                                  ),
+                                ),
+                              )
+                          ),
+                        )
+                      ],
+                    );
+                  }
+              )
+                    )
+                )
               )
             ],
           ),
