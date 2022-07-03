@@ -14,7 +14,8 @@ class VideoInfo extends StatefulWidget {
 class _VideoInfoState extends State<VideoInfo> {
   List videoInfo = [];
   bool _playArea=false;
-  VideoPlayerController? videoPlayerController;
+  bool _isPlaying=false;
+  late VideoPlayerController videoPlayerController;
   _initData() async{
     await DefaultAssetBundle.of(context).loadString("json/videoInfo.json").then((value){
       setState((){
@@ -28,6 +29,11 @@ class _VideoInfoState extends State<VideoInfo> {
     super.initState();
     _initData();
   }
+
+  // @override
+  // void dispose(){
+  //   super.dispose();
+  // }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,7 +156,8 @@ class _VideoInfoState extends State<VideoInfo> {
                       ],
                     ),
                   ),
-                  _playView(context)
+                  _playView(context),
+                  _controlView(context)
                 ],
               ),
             ),
@@ -203,6 +210,48 @@ class _VideoInfoState extends State<VideoInfo> {
       )
     );
   }
+  Widget _controlView(BuildContext buildContext){
+    return Container(
+      height:120,
+      width:MediaQuery.of(context).size.width,
+      color:color.AppColor.gradientSecond,
+        child:Row(
+        mainAxisAlignment:MainAxisAlignment.center,
+        children: [
+        FlatButton(
+            onPressed:() async{
+
+            },
+            child:Icon(Icons.fast_rewind,size:36,color:Colors.white,)
+        ),
+        FlatButton(
+            onPressed:() async{
+              if(_isPlaying){
+                setState((){
+                  _isPlaying=false;
+                });
+                videoPlayerController.pause();
+              }else{
+                setState((){
+                  _isPlaying=true;
+                });
+                videoPlayerController.play();
+              }
+            },
+            child:Icon(_isPlaying?Icons.pause:Icons.play_arrow,size:36,color:Colors.white,)
+        ),
+        FlatButton(
+            onPressed:() async{
+
+            },
+            child:Icon(Icons.fast_forward,size:36,color:Colors.white,)
+        )
+      ],
+    ),
+    );
+
+  }
+
   Widget _playView(BuildContext buildContext){
     final controller = videoPlayerController;
     if(controller!=null&&controller.value.isInitialized){
@@ -225,12 +274,28 @@ class _VideoInfoState extends State<VideoInfo> {
       );
     }
   }
+
+  void _onControllerUpdate()async{
+     final controller = videoPlayerController;
+     if(controller==null){
+       debugPrint("Controller is null");
+       return;
+     }
+     if(!videoPlayerController.value.isInitialized){
+       debugPrint("controller can not be initialized");
+       return;
+     }
+     final playing = videoPlayerController.value.isPlaying;
+     _isPlaying=playing;
+  }
+
   _onTapVideo(int index){
     final controller = VideoPlayerController.network(videoInfo[index]["videoUrl"]);
     videoPlayerController = controller;
     setState((){
     });
     controller..initialize().then((_){
+      controller.addListener(_onControllerUpdate);
       controller.play();
       setState((){
       });
