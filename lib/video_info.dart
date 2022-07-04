@@ -15,6 +15,8 @@ class _VideoInfoState extends State<VideoInfo> {
   List videoInfo = [];
   bool _playArea=false;
   bool _isPlaying=false;
+  bool _disposed= false;
+  int _isPlayingIndex=-1;
   late VideoPlayerController videoPlayerController;
   _initData() async{
     await DefaultAssetBundle.of(context).loadString("json/videoInfo.json").then((value){
@@ -30,10 +32,15 @@ class _VideoInfoState extends State<VideoInfo> {
     _initData();
   }
 
-  // @override
-  // void dispose(){
-  //   super.dispose();
-  // }
+  @override
+  void dispose(){
+    _disposed=true;
+    videoPlayerController.pause();
+    videoPlayerController.dispose();
+    // videoPlayerController=null;
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -220,7 +227,10 @@ class _VideoInfoState extends State<VideoInfo> {
         children: [
         FlatButton(
             onPressed:() async{
-
+             final index = _isPlayingIndex-1;
+             if(index>=0&&videoInfo.length>=0){
+               _onTapVideo(index);
+             }
             },
             child:Icon(Icons.fast_rewind,size:36,color:Colors.white,)
         ),
@@ -275,7 +285,17 @@ class _VideoInfoState extends State<VideoInfo> {
     }
   }
 
+  var _onUpdateControllerTime;
   void _onControllerUpdate()async{
+     if(_disposed){
+       return;
+     }
+     _onUpdateControllerTime=0;
+     final now = DateTime.now().millisecondsSinceEpoch;
+     if(_onUpdateControllerTime>now){
+       return;
+     }
+     _onUpdateControllerTime=now+500;
      final controller = videoPlayerController;
      if(controller==null){
        debugPrint("Controller is null");
@@ -291,10 +311,17 @@ class _VideoInfoState extends State<VideoInfo> {
 
   _onTapVideo(int index){
     final controller = VideoPlayerController.network(videoInfo[index]["videoUrl"]);
+    final old = videoPlayerController;
     videoPlayerController = controller;
+    if(old!=null){
+      old.removeListener(_onControllerUpdate);
+      old.pause();
+    }
     setState((){
     });
     controller..initialize().then((_){
+      old.dispose();
+      _isPlayingIndex=index;
       controller.addListener(_onControllerUpdate);
       controller.play();
       setState((){
